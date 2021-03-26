@@ -1,8 +1,8 @@
 # ---------------- #
 #   Main Configs   #
 # ---------------- #
-baseurl:
-url:
+baseurl: https://chensk.github.io/
+url: https://chensk.github.io/
 date_format: "ordinal"
 title: 不加香菜
 subtitle: "远离香菜，寿与天齐"
