@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://chensk.github.io//https://chensk.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://chensk.github.io//https://chensk.github.io/" rel="alternate" type="text/html" /><updated>2021-03-26T11:36:35+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/feed.xml</id><title type="html">不加香菜</title><author><name>不吃香菜的小鬼</name></author><entry><title type="html">go 读写锁原理解析</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/" rel="alternate" type="text/html" title="go 读写锁原理解析" /><published>2021-03-26T00:00:00+08:00</published><updated>2021-03-26T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/">&lt;h1 id=&quot;引言&quot;&gt;引言&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://chensk.github.io//https://chensk.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://chensk.github.io//https://chensk.github.io/" rel="alternate" type="text/html" /><updated>2021-03-26T11:44:36+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/feed.xml</id><title type="html">不加香菜</title><author><name>不吃香菜的小鬼</name></author><entry><title type="html">go 读写锁原理解析</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/" rel="alternate" type="text/html" title="go 读写锁原理解析" /><published>2021-03-26T00:00:00+08:00</published><updated>2021-03-26T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/">&lt;h1 id=&quot;引言&quot;&gt;引言&lt;/h1&gt;
 
 &lt;p&gt;锁是编程开发中用于并发控制的一种同步机制，提供多线程（或协程）之间并发读写一个共享数据的方法。在go语言中使用锁也很简单：&lt;/p&gt;
 
@@ -53,34 +53,36 @@
 &lt;ul&gt;
   &lt;li&gt;并发读操作之间不互斥；&lt;/li&gt;
   &lt;li&gt;并发写操作之间互斥；&lt;/li&gt;
-  &lt;li&gt;并发读操作和写操作互斥；
-的锁。
-go语言的sync包也包含了这一数据结构，即&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RWMutex&lt;/code&gt;，使用方法与普通的锁基本相同，唯一的区别在于读操作的加锁、释放锁用的是&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RLock&lt;/code&gt;方法和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUnlock&lt;/code&gt;方法：
-```go
-var rwLoc sync.RWMutex
-var idx int&lt;/li&gt;
+  &lt;li&gt;并发读操作和写操作互斥；&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;func ReadRW() {
-   rwLoc.RLock()
-   defer rwLoc.RUnlock()
-   _, _ = fmt.Fprint(ioutil.Discard, idx)
-}&lt;/p&gt;
+&lt;p&gt;的锁。&lt;/p&gt;
 
-&lt;p&gt;func WriteRW() {
-   rwLoc.Lock()
-   defer rwLoc.Unlock()
-   idx = 3
-}&lt;/p&gt;
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;那么go是怎么实现读写锁的呢，让我们通过源码分析一下它的实现原理。
-# 源码分析
-在看源码之前我们不妨先思考一下，如果自己实现，需要怎么设计这个数据结构来满足上面那三个要求，然后再参看源码会有更多理解。
-首先，为了满足第二点和第三点要求，肯定需要一个互斥锁：
-```go
-type RWMutex struct{
-    w Mutex // held if there are pending writers
-    ...
-}
+&lt;p&gt;go语言的sync包也包含了这一数据结构，即&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RWMutex&lt;/code&gt;，使用方法与普通的锁基本相同，唯一的区别在于读操作的加锁、释放锁用的是&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RLock&lt;/code&gt;方法和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUnlock&lt;/code&gt;方法：&lt;/p&gt;
+
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rwLoc&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sync&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RWMutex&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ReadRW&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;rwLoc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;defer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rwLoc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RUnlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Fprint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ioutil&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Discard&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WriteRW&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;rwLoc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;defer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rwLoc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;3&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;那么go是怎么实现读写锁的呢，让我们通过源码分析一下它的实现原理。&lt;/p&gt;
+&lt;h1 id=&quot;源码分析&quot;&gt;源码分析&lt;/h1&gt;
+&lt;p&gt;在看源码之前我们不妨先思考一下，如果自己实现，需要怎么设计这个数据结构来满足上面那三个要求，然后再参看源码会有更多理解。
+首先，为了满足第二点和第三点要求，肯定需要一个互斥锁：&lt;/p&gt;
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RWMutex&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;w&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Mutex&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;// held if there are pending writers&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;这个互斥锁是在写操作时使用的：&lt;/p&gt;
 &lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rw&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RWMutex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
@@ -142,16 +144,16 @@ type RWMutex struct{
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;每次写操作Lock时会将当前readerCount数量记在readerWait里。
 回想一下，当写操作Lock后readerCount会小于0，这时reader unlock时会执行rUnlockSlow方法，现在可以来看它的实现过程了：&lt;/p&gt;
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;func (rw *RWMutex) rUnlockSlow(r int32) {
-    if r+1 == 0 || r+1 == -rwmutexMaxReaders {
-        throw(&quot;sync: RUnlock of unlocked RWMutex&quot;)
-    }
-    // 每个reader完成读操作后将readerWait减小1
-    if atomic.AddInt32(&amp;amp;rw.readerWait, -1) == 0 {
-        // 当readerWait为0时代表writer等待的所有reader都已经完成了，可以唤醒writer了
-        runtime_Semrelease(&amp;amp;rw.writerSem, false, 1)
-    }
-}
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rw&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RWMutex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rUnlockSlow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rwmutexMaxReaders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;throw&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;sync: RUnlock of unlocked RWMutex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;// 每个reader完成读操作后将readerWait减小1&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;atomic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AddInt32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rw&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readerWait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;// 当readerWait为0时代表writer等待的所有reader都已经完成了，可以唤醒writer了&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;runtime_Semrelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rw&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writerSem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;最后再看写操作的释放锁过程：&lt;/p&gt;
 &lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rw&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RWMutex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
