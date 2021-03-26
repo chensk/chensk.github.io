@@ -1,1 +1,1 @@
-Sitemap: /sitemap.xml
+Sitemap: https://chensk.github.io//https://chensk.github.io/sitemap.xml

@@ -5,7 +5,7 @@
   
     {
       "title"    : "页面没有找到",
-      "url"      : "/404.html",
+      "url"      : "https://chensk.github.io//404.html",
       "keywords" : "404"
     } ,
   
@@ -13,7 +13,7 @@
   
     {
       "title"    : "About",
-      "url"      : "/about/",
+      "url"      : "https://chensk.github.io//about/",
       "keywords" : "Dean"
     } ,
   
@@ -21,7 +21,7 @@
   
     {
       "title"    : "归档",
-      "url"      : "/archives/",
+      "url"      : "https://chensk.github.io//archives/",
       "keywords" : "归档"
     } ,
   
@@ -29,7 +29,7 @@
   
     {
       "title"    : "Categories",
-      "url"      : "/categories/",
+      "url"      : "https://chensk.github.io//categories/",
       "keywords" : "分类"
     } ,
   
@@ -39,7 +39,7 @@
   
     {
       "title"    : "Links",
-      "url"      : "/links/",
+      "url"      : "https://chensk.github.io//links/",
       "keywords" : "友情链接"
     } ,
   
@@ -47,7 +47,7 @@
   
     {
       "title"    : "mindmap",
-      "url"      : "/mindmap-viewer/",
+      "url"      : "https://chensk.github.io//mindmap-viewer/",
       "keywords" : "mindmap"
     } ,
   
@@ -55,7 +55,7 @@
   
     {
       "title"    : "Open Source Projects",
-      "url"      : "/open-source/",
+      "url"      : "https://chensk.github.io//open-source/",
       "keywords" : "开源,open-source,GitHub,开源项目"
     } ,
   
@@ -65,7 +65,7 @@
   
     {
       "title"    : "Wiki",
-      "url"      : "/wiki/",
+      "url"      : "https://chensk.github.io//wiki/",
       "keywords" : "维基, Wiki"
     } ,
   
@@ -84,7 +84,7 @@
       "title"    : "Wiki Template",
       "category" : "cate1",
       
-      "url"      : "/wiki/template/",
+      "url"      : "https://chensk.github.io//wiki/template/",
       "keywords" : "keyword1, keyword2"
     } 
   
