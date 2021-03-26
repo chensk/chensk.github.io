@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://chensk.github.io//https://chensk.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://chensk.github.io//https://chensk.github.io/" rel="alternate" type="text/html" /><updated>2021-03-26T12:08:55+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/feed.xml</id><title type="html">不加香菜</title><author><name>不吃香菜的小鬼</name></author><entry><title type="html">go 读写锁原理解析</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/" rel="alternate" type="text/html" title="go 读写锁原理解析" /><published>2021-03-26T00:00:00+08:00</published><updated>2021-03-26T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/">&lt;h1 id=&quot;引言&quot;&gt;引言&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://chensk.github.io//https://chensk.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://chensk.github.io//https://chensk.github.io/" rel="alternate" type="text/html" /><updated>2021-03-26T14:24:41+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/feed.xml</id><title type="html">不加香菜</title><author><name>不吃香菜的小鬼</name></author><entry><title type="html">go 读写锁原理解析</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/" rel="alternate" type="text/html" title="go 读写锁原理解析" /><published>2021-03-26T00:00:00+08:00</published><updated>2021-03-26T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/">&lt;p&gt;介绍go语言如何使用读写锁，重点分析了其实现原理，有助于理解高并发编程&lt;/p&gt;
+
+&lt;h1 id=&quot;引言&quot;&gt;引言&lt;/h1&gt;
 
 &lt;p&gt;锁是编程开发中用于并发控制的一种同步机制，提供多线程（或协程）之间并发读写一个共享数据的方法。在go语言中使用锁也很简单：&lt;/p&gt;
 
@@ -294,4 +296,4 @@ BenchmarkRWLock-12    	  320209	      3834 ns/op
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;p&gt;可以看出当读的比例越高时，使用读写锁获得的性能提升比例越高。&lt;/p&gt;</content><author><name>不吃香菜的小鬼</name></author><category term="Go" /><summary type="html">引言</summary></entry></feed>
+&lt;p&gt;可以看出当读的比例越高时，使用读写锁获得的性能提升比例越高。&lt;/p&gt;</content><author><name>不吃香菜的小鬼</name></author><category term="Go" /><summary type="html">介绍go语言如何使用读写锁，重点分析了其实现原理，有助于理解高并发编程</summary></entry></feed>
