@@ -1,0 +1,92 @@
+
+
+[
+  
+  
+    {
+      "title"    : "页面没有找到",
+      "url"      : "/404.html",
+      "keywords" : "404"
+    } ,
+  
+  
+  
+    {
+      "title"    : "About",
+      "url"      : "/about/",
+      "keywords" : "Dean"
+    } ,
+  
+  
+  
+    {
+      "title"    : "归档",
+      "url"      : "/archives/",
+      "keywords" : "归档"
+    } ,
+  
+  
+  
+    {
+      "title"    : "Categories",
+      "url"      : "/categories/",
+      "keywords" : "分类"
+    } ,
+  
+  
+  
+  
+  
+    {
+      "title"    : "Links",
+      "url"      : "/links/",
+      "keywords" : "友情链接"
+    } ,
+  
+  
+  
+    {
+      "title"    : "mindmap",
+      "url"      : "/mindmap-viewer/",
+      "keywords" : "mindmap"
+    } ,
+  
+  
+  
+    {
+      "title"    : "Open Source Projects",
+      "url"      : "/open-source/",
+      "keywords" : "开源,open-source,GitHub,开源项目"
+    } ,
+  
+  
+  
+  
+  
+    {
+      "title"    : "Wiki",
+      "url"      : "/wiki/",
+      "keywords" : "维基, Wiki"
+    } ,
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+    {
+      "title"    : "Wiki Template",
+      "category" : "cate1",
+      
+      "url"      : "/wiki/template/",
+      "keywords" : "keyword1, keyword2"
+    } 
+  
+]
+
