@@ -1,7 +1,7 @@
 ---
 layout: post
 title: go语言happens-before原则及应用
-categories: go
+categories: Go
 description: go语言happens-before原则及应用
 keywords: go, happens-before, 并发, goroutine 
 ---
