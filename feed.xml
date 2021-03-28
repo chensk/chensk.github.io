@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://chensk.github.io//https://chensk.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://chensk.github.io//https://chensk.github.io/" rel="alternate" type="text/html" /><updated>2021-03-28T18:46:34+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/feed.xml</id><title type="html">不加香菜</title><author><name>不吃香菜的小鬼</name></author><entry><title type="html">go语言happens-before原则及应用</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/28/go-happens-before/" rel="alternate" type="text/html" title="go语言happens-before原则及应用" /><published>2021-03-28T00:00:00+08:00</published><updated>2021-03-28T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/28/go-happens-before</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/28/go-happens-before/">&lt;p&gt;了解go中&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;规则，寻找并发程序不确定性中的确定性。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://chensk.github.io//https://chensk.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://chensk.github.io//https://chensk.github.io/" rel="alternate" type="text/html" /><updated>2021-03-28T18:51:31+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/feed.xml</id><title type="html">不加香菜</title><author><name>不吃香菜的小鬼</name></author><entry><title type="html">go语言happens-before原则及应用</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/28/go-happens-before/" rel="alternate" type="text/html" title="go语言happens-before原则及应用" /><published>2021-03-28T00:00:00+08:00</published><updated>2021-03-28T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/28/go-happens-before</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/28/go-happens-before/">&lt;p&gt;了解go中&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;规则，寻找并发程序不确定性中的确定性。&lt;/p&gt;
+
 &lt;h1 id=&quot;引言&quot;&gt;引言&lt;/h1&gt;
+
 &lt;p&gt;先抛开你所熟知的信号量、锁、同步原语等技术，思考这个问题：如何保证并发读写的准确性？一个没有任何并发编程经验的程序员可能会觉得很简单：这有什么问题呢，同时读写能有什么问题，最多就是读到过期的数据而已。一个理想的世界当然是这样，只可惜实际上的机器世界往往隐藏了很多不容易被察觉的事情。至少有两个行为会影响这个结论：&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;编译器往往有指令重排序的优化；例如程序员看到的源代码是&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a=3; b=4;&lt;/code&gt;，而实际上执行的顺序可能是&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b=4; a=3；&lt;/code&gt;，这是因为编译器为了优化执行效率可能对指令进行重排序；&lt;/li&gt;
@@ -52,12 +54,18 @@ b = 4; // (2)
 &lt;h2 id=&quot;初始化&quot;&gt;初始化&lt;/h2&gt;
 &lt;p&gt;每个go文件都可以有一个&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法，用于执行某些初始化逻辑。当我们开始执行某个&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;方法时，go会先在一个goroutine里做初始化工作，也就是执行所有go文件的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法，这个过程中go可能创建多个goroutine并发地执行，因此通常情况下各个&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法是没有&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;关系的。关于&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法有两条&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;规则：&lt;/p&gt;
 &lt;blockquote&gt;
-  &lt;p&gt;1.a 包导入了 b包，此时b包的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; a包的所有代码；
-2.所有&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;方法；&lt;/p&gt;
-  &lt;h2 id=&quot;goroutine&quot;&gt;goroutine&lt;/h2&gt;
-  &lt;p&gt;goroutine相关的规则主要是其创建和销毁的：
-1.goroutine的创建 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; 其执行；
-2.goroutine的完成&lt;strong&gt;不保证&lt;/strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;任何代码；&lt;/p&gt;
+  &lt;p&gt;1.a 包导入了 b包，此时b包的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; a包的所有代码；&lt;/p&gt;
+
+  &lt;p&gt;2.所有&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;init&lt;/code&gt;方法&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;方法；&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;goroutine&quot;&gt;goroutine&lt;/h2&gt;
+&lt;p&gt;goroutine相关的规则主要是其创建和销毁的：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;1.goroutine的创建 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; 其执行；&lt;/p&gt;
+
+  &lt;p&gt;2.goroutine的完成&lt;strong&gt;不保证&lt;/strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;任何代码；&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;第一条规则举个简单的例子即可：&lt;/p&gt;
@@ -154,9 +162,13 @@ b = 4; // (2)
 
 &lt;blockquote&gt;
   &lt;p&gt;注1：以上是官方文档给的规则和例子，但是笔者在尝试将第一个例子的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;c&lt;/code&gt;改成无缓冲通道后发现每次打印的依然稳定是”hello world”，并没有出现预期的空字符串，也就是看起来&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;规则依然成立。但既然官方文档说无法保证，那我们开发时还是按照&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;不成立比较好。&lt;/p&gt;
-  &lt;h2 id=&quot;锁&quot;&gt;锁&lt;/h2&gt;
-  &lt;p&gt;锁也是并发编程里非常常用的一个数据结构。go语言中支持的锁主要有两种：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sync.Mutex&lt;/code&gt;和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sync.RWMutex&lt;/code&gt;，即普通锁和读写锁（读写锁的原理可以参见另一篇&lt;a href=&quot;https://chensk.github.io//2021/03/26/go-rwlock/&quot;&gt;文章&lt;/a&gt;）。普通锁的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;规则也很直观：
-1.对锁实例调用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;n&lt;/code&gt;次&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Unlock&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; 调用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Lock&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;m&lt;/code&gt;次，只要&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;n &amp;lt; m&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;锁&quot;&gt;锁&lt;/h2&gt;
+&lt;p&gt;锁也是并发编程里非常常用的一个数据结构。go语言中支持的锁主要有两种：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sync.Mutex&lt;/code&gt;和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sync.RWMutex&lt;/code&gt;，即普通锁和读写锁（读写锁的原理可以参见另一篇&lt;a href=&quot;https://chensk.github.io//2021/03/26/go-rwlock/&quot;&gt;文章&lt;/a&gt;）。普通锁的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;规则也很直观：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;1.对锁实例调用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;n&lt;/code&gt;次&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Unlock&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt; 调用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Lock&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;m&lt;/code&gt;次，只要&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;n &amp;lt; m&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;请看这个例子：&lt;/p&gt;
@@ -295,7 +307,7 @@ b = 4; // (2)
    &lt;span class=&quot;nb&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;总之，如果无法确定并发读写之间的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;关系，那么最好使用同步工具明确它们之间的关系，例如锁或者通道。不要给程序留下不确定的可能，毕竟确定性就是编程的魅力！&lt;/p&gt;</content><author><name>不吃香菜的小鬼</name></author><category term="go" /><summary type="html">了解go中happens-before规则，寻找并发程序不确定性中的确定性。 引言 先抛开你所熟知的信号量、锁、同步原语等技术，思考这个问题：如何保证并发读写的准确性？一个没有任何并发编程经验的程序员可能会觉得很简单：这有什么问题呢，同时读写能有什么问题，最多就是读到过期的数据而已。一个理想的世界当然是这样，只可惜实际上的机器世界往往隐藏了很多不容易被察觉的事情。至少有两个行为会影响这个结论： 编译器往往有指令重排序的优化；例如程序员看到的源代码是a=3; b=4;，而实际上执行的顺序可能是b=4; a=3；，这是因为编译器为了优化执行效率可能对指令进行重排序； 高级编程语言所支持的运算往往不是原子化的；例如a += 3实际上包含了读变量、加运算和写变量三次原子操作。既然整个过程并不是原子化的，就意味着随时有其它“入侵者”侵入修改数据。更为隐藏的例子：对于变量的读写甚至可能都不是原子化的。不同机器读写变量的过程可能是不同的，有些机器可能是64位数据一次性读写，而有些机器是32位数据一次读写。这就意味着一个64位的数据在后者的读写上实际上是分成两次完成的！试想，如果你试图读取一个64位数据的值，先读取了低32的数据，这时另一个线程切进来修改了整个数据的值，最后你再读取高32的值，将高32和低32的数据拼成完整的值，很明显会得到一个预期以外的数据。</summary></entry><entry><title type="html">go 读写锁原理解析</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/" rel="alternate" type="text/html" title="go 读写锁原理解析" /><published>2021-03-26T00:00:00+08:00</published><updated>2021-03-26T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/">&lt;p&gt;介绍go语言如何使用读写锁，重点分析了其实现原理，有助于理解高并发编程&lt;/p&gt;
+&lt;p&gt;总之，如果无法确定并发读写之间的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;happens-before&lt;/code&gt;关系，那么最好使用同步工具明确它们之间的关系，例如锁或者通道。不要给程序留下不确定的可能，毕竟确定性就是编程的魅力！&lt;/p&gt;</content><author><name>不吃香菜的小鬼</name></author><category term="go" /><summary type="html">了解go中happens-before规则，寻找并发程序不确定性中的确定性。</summary></entry><entry><title type="html">go 读写锁原理解析</title><link href="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/" rel="alternate" type="text/html" title="go 读写锁原理解析" /><published>2021-03-26T00:00:00+08:00</published><updated>2021-03-26T00:00:00+08:00</updated><id>https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock</id><content type="html" xml:base="https://chensk.github.io//https://chensk.github.io/2021/03/26/go-rwlock/">&lt;p&gt;介绍go语言如何使用读写锁，重点分析了其实现原理，有助于理解高并发编程&lt;/p&gt;
 
 &lt;h1 id=&quot;引言&quot;&gt;引言&lt;/h1&gt;
 
