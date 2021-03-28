@@ -90,7 +90,7 @@
   
     {
       "title"    : "go语言happens-before原则及应用",
-      "category" : "go",
+      "category" : "Go",
       
       "url"      : "https://chensk.github.io//2021/03/28/go-happens-before/",
       "keywords" : "go, happens-before, 并发, goroutine"
